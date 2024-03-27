@@ -15,11 +15,16 @@ IS3107 Final Project
 - **Setup**:
     1. Make sure directory is set to AirflowDocker
         ```cd AirflowDocker```
-    2. Initialize environment: Initialize the database (1st time only)
+    2. Initialize the environment with the docker-compose.yaml file
+        ```bash
+        mkdir -p ./dags ./logs ./plugins ./config
+        echo -e "AIRFLOW_UID=$(id -u)" > .env
+        ```
+    3. Start the Airflow Environment (1st time only)
         ```docker compose up airflow-init```
-    3. Start all services
+    4. Start all services
         ```docker compose up```
-    4. Access Airflow UI at `http://localhost:8080/`
+    5. Access Airflow UI at `http://localhost:8080/`
 
     Default credentials   
     Username: airflow  
