@@ -2,8 +2,8 @@ from datetime import datetime
 from airflow.decorators import dag, task
 from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
 from google.cloud import bigquery
-
-from sgcarmart_operators.sgcarmart import run_scraper, run_test_scraper, transform_sgcarmart_data
+from airflow.providers.google.cloud.hooks.gcs import GCSHook
+from modules.sgcarmart import run_scraper, run_test_scraper, transform_sgcarmart_data
 
 default_args = {
     'owner': 'airflow',
@@ -21,10 +21,21 @@ def sgcarmart_taskflow():
     @task
     def transform_data(df):
         cleaned_df = transform_sgcarmart_data(df)
-        cleaned_df.to_csv('/opt/airflow/data/sgcarmart_cleaned.csv', index=True)
         return cleaned_df
+    
+    @task
+    def save_to_google_storage(transformed_data):
+        gcs_hook = GCSHook(google_cloud_storage_conn_id='google_cloud_default')
+        bucket_name = 'is3107-datasets'
+        folder_name = 'sgcarmart'  # Replace with your desired folder name
+        today = datetime.now().strftime("%d%m%Y")
+        file_name = f'{today}_sgcarmart.csv'
+        destination_blob_name = f'{folder_name}/{file_name}'
+        gcs_hook.upload(bucket_name=bucket_name, object_name=destination_blob_name, data=transformed_data.to_csv(index=False).encode())
 
-    test_scraper_task = execute_test_scraper(10)
+
+    test_scraper_task = execute_test_scraper(1)
     cleaned_data_task = transform_data(test_scraper_task)
+    save_to_google_storage(cleaned_data_task)
 
 dag = sgcarmart_taskflow()

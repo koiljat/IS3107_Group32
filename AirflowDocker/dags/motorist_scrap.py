@@ -1,10 +1,12 @@
 from datetime import datetime
 from airflow.decorators import dag, task
 from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
+from airflow.providers.google.cloud.hooks.gcs import GCSHook
 from google.cloud import bigquery
+import time
 
-from motorist_operators.extract import get_links, get_details
-from motorist_operators.transform import transform 
+from modules.extract import get_links, get_details
+from modules.transform import transform 
 
 default_args = {
     'owner': 'airflow',
@@ -29,6 +31,7 @@ def webscraper_taskflow():
 
     @task(task_id='save_data_to_bigquery')
     def save_data_to_bigquery(df):
+        
     
         hook = BigQueryHook(bigquery_conn_id='gcp_is3107', use_legacy_sql=False)
         client = hook.get_client()
@@ -59,10 +62,23 @@ def webscraper_taskflow():
         except Exception as e:
             print(f"An error occurred while loading data to BigQuery: {e}")
 
+    @task(task_id='google_storage_dump')
+    def save_to_google_storage(transformed_data):
+        gcs_hook = GCSHook(google_cloud_storage_conn_id='google_cloud_default')
+        bucket_name = 'is3107-datasets'
+        folder_name = 'motoristsg'  # Replace with your desired folder name
+        today = datetime.now().strftime("%d%m%Y")
+        file_name = f'{today}_motorist.csv'
+        destination_blob_name = f'{folder_name}/{file_name}'
+        gcs_hook.upload(bucket_name=bucket_name, object_name=destination_blob_name, data=transformed_data.to_csv(index=False).encode())
+
+        
+        
     links = fetch_links()
     details = fetch_details(links)
     transformed_data = transform_data(details)
-    save_data_to_bigquery(transformed_data)
+    # save_data_to_bigquery(transformed_data)
+    save_to_google_storage(transformed_data)
 
 dag = webscraper_taskflow()
 
