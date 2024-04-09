@@ -2,3 +2,4 @@
 AirflowDocker/logs
 is3107-418903-a6116d294003.json
 *.pyc
+**/__pycache__
