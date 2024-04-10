@@ -83,7 +83,7 @@ def api_calls_taskflow():
 
             year = pd.to_datetime(reg_date).year if pd.notnull(reg_date) else None
             # Form query_string to check for existence in dict
-            query_string = f"({name},{model},{year})"
+            query_string = f"({make},{model},{year})"
 
             if query_string in dict:
                 continue
@@ -149,7 +149,7 @@ def api_calls_taskflow():
 
             year = pd.to_datetime(reg_date).year if pd.notnull(reg_date) else None
             # Form query_string to check for existence in dict
-            query_string = f"({name},{model},{year})"
+            query_string = f"({make},{model},{year})"
 
             if query_string in dict:
                 continue
@@ -208,6 +208,15 @@ def api_calls_taskflow():
         object_name = 'carAPI/api.json'
         json_data = json.dumps(dict)
         gcs_hook.upload(bucket_name=bucket_name, object_name=object_name, data=json_data.encode(), mime_type='application/json')
+        
+    # @task(task_id="save_api_csv")
+    # def save_api_csv(dict):
+    #     gcs_hook = GCSHook(google_cloud_storage_conn_id='google_cloud_default')
+    #     bucket_name = 'is3107-datasets'
+    #     object_name = 'carAPI/api.csv'
+        
+    #     json_data = json.dumps(dict)
+    #     gcs_hook.upload(bucket_name=bucket_name, object_name=object_name, data=json_data.encode(), mime_type='application/json')
         
     motorist_df = fetch_motorist()
     sgcarmart_df = fetch_sgcarmart()
