@@ -83,7 +83,7 @@ def api_calls_taskflow():
 
             year = pd.to_datetime(reg_date).year if pd.notnull(reg_date) else None
             # Form query_string to check for existence in dict
-            query_string = f"({name},{model},{year})"
+            query_string = f"({make},{model},{year})"
 
             if query_string in dict:
                 continue
@@ -149,7 +149,7 @@ def api_calls_taskflow():
 
             year = pd.to_datetime(reg_date).year if pd.notnull(reg_date) else None
             # Form query_string to check for existence in dict
-            query_string = f"({name},{model},{year})"
+            query_string = f"({make},{model},{year})"
 
             if query_string in dict:
                 continue
@@ -209,11 +209,32 @@ def api_calls_taskflow():
         json_data = json.dumps(dict)
         gcs_hook.upload(bucket_name=bucket_name, object_name=object_name, data=json_data.encode(), mime_type='application/json')
         
+    @task(task_id="save_api_csv")
+    def save_api_csv(dict):
+        gcs_hook = GCSHook(google_cloud_storage_conn_id='google_cloud_default')
+        bucket_name = 'is3107-datasets'
+        object_name = 'carAPI/api.csv'
+        rows = []
+        for key, values in dict.items():
+            make, model, year = key.replace('(', '').replace(')', '').split(',')
+            row = {'make': make, 'model': model, 'year': year}
+            if values is not None:
+                row.update(values)
+                rows.append(row)
+        df = pd.DataFrame(rows)
+        csv_data = df.to_csv(index=False).encode()
+    
+        gcs_hook.upload(bucket_name=bucket_name, object_name=object_name, data=csv_data)
+
+        
+        
     motorist_df = fetch_motorist()
     sgcarmart_df = fetch_sgcarmart()
     api_dict = fetch_api_json()
     first_dict = execute_api_calls_for_motorist(motorist_df, api_dict)
     second_dict = execute_api_calls_for_sgcarmart(sgcarmart_df, first_dict)
     save_api_json(second_dict)
+    save_api_csv(second_dict)
+    
 
 dag = api_calls_taskflow()
