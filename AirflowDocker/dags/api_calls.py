@@ -231,14 +231,6 @@ def api_calls_taskflow():
     
         gcs_hook.upload(bucket_name=bucket_name, object_name=object_name, data=csv_data)
         
-        
-    motorist_df = fetch_motorist()
-    sgcarmart_df = fetch_sgcarmart()
-    api_dict = fetch_api_json()
-    first_dict = execute_api_calls_for_motorist(motorist_df, api_dict)
-    second_dict = execute_api_calls_for_sgcarmart(sgcarmart_df, first_dict)
-    save_api_json(second_dict)
-    save_api_csv(second_dict)
     load_csv_to_bigquery = GCSToBigQueryOperator(
         task_id='load_csv_to_bigquery',
         bucket='is3107-datasets',
@@ -250,8 +242,15 @@ def api_calls_taskflow():
         gcp_conn_id='google_cloud_default',
         autodetect=True
     )
-    
-    save_api_csv(second_dict) >> load_csv_to_bigquery
+        
+        
+    motorist_df = fetch_motorist()
+    sgcarmart_df = fetch_sgcarmart()
+    api_dict = fetch_api_json()
+    first_dict = execute_api_calls_for_motorist(motorist_df, api_dict)
+    second_dict = execute_api_calls_for_sgcarmart(sgcarmart_df, first_dict)
+    save_api_json(second_dict)
+    save_api_csv(second_dict) >> load_csv_to_bigquery 
     
 
 dag = api_calls_taskflow()
