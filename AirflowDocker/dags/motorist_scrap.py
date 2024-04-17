@@ -5,8 +5,8 @@ from airflow.providers.google.cloud.hooks.gcs import GCSHook
 from google.cloud import bigquery
 import time
 
-from modules.extract import get_links, get_details
-from modules.transform import transform 
+from motorist_operators.extract import get_links, get_details
+from motorist_operators.transform import transform 
 
 default_args = {
     'owner': 'airflow',

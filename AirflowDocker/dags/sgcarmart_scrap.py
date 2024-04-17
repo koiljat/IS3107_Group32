@@ -3,7 +3,7 @@ from airflow.decorators import dag, task
 from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
 from google.cloud import bigquery
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
-from modules.sgcarmart import run_scraper, run_test_scraper, transform_sgcarmart_data
+from sgcarmart_operators.sgcarmart import run_scraper, run_test_scraper, transform_sgcarmart_data
 
 default_args = {
     'owner': 'airflow',
