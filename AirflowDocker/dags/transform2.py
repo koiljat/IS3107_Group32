@@ -62,7 +62,7 @@ def transform2():
         sql_drop_columns = """
         CREATE OR REPLACE TABLE `is3107-418903.factTable.carsCombinedFinal` AS
         SELECT
-        owners, eng_cap, price, depreciation, mileage, power, coe_left, omv, arf, accessories, model_make_id, model, model_trim, model_year, model_body, model_seats, model_weight_kg, model_engine_fuel, model_engine_cyl, model_drive, model_transmission_type, model_fuel_cap_l, vehicle_class
+        owners, eng_cap, price, depreciation, mileage, power, coe_left, omv, arf, accessories, model_make_id, make, model_trim, model_year, model_body, model_seats, model_weight_kg, model_engine_fuel, model_engine_cyl, model_drive, model_transmission_type, model_fuel_cap_l, vehicle_class
         FROM `is3107-418903.factTable.cars-listingsAPI_class`; -- this should be is3107-418903.factTable.cars-listingsCOE
         """
         sql_drop_columns = client.query(sql_drop_columns)

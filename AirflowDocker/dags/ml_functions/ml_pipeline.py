@@ -98,7 +98,7 @@ def data_encoding(data):
 
     for i in range(len(data)):
         row = data.iloc[i]
-        model = row['model']
+        model = row['make']
         for group, brand_list in brands.items():
             for brand in brand_list:
                 if brand.lower() in model.lower():
@@ -111,7 +111,7 @@ def data_encoding(data):
         'others' : 1.5
         }
     data['brands'] = data['brands'].map(ordinal_mapping)
-    data = data.drop(columns=['model'])
+    data = data.drop(columns=['make'])
     return data
 
 def drop_cols(data):
