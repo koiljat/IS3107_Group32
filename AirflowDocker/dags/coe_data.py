@@ -34,6 +34,18 @@ def coe_retriever():
                 dataframe = pd.read_csv(csv_file)
         print(dataframe)
         return dataframe
+    
+    @task(task_id="transform_type")
+    def transform_type(dataframe):
+        dataframe["month"] = dataframe["month"].astype(str)
+        dataframe["bidding_no"] = dataframe["bidding_no"].astype(int)
+        dataframe["vehicle_class"] = dataframe["vehicle_class"].astype(str)
+        dataframe["quota"] = dataframe["quota"].astype(int)
+        dataframe["bids_success"] = dataframe["bids_success"].astype(int)
+        dataframe["bids_received"] = dataframe["bids_received"].str.replace(",", "").astype(int)
+        dataframe["premium"] = dataframe["premium"].astype(int)
+
+        return dataframe
 
     @task(task_id="save_coe_csv")
     def save_coe_csv(dataframe):
@@ -47,15 +59,35 @@ def coe_retriever():
     @task(task_id="save_to_bq")
     def save_data_to_bq(dataframe):
         hook = BigQueryHook(bigquery_conn_id='google_cloud_default', use_legacy_sql=False)
-        project_id = 'your-gcp-project-id'  # replace with your GCP project ID
-        dataset_id = 'your_dataset_id'  # replace with your BigQuery dataset ID
-        table_id = 'your_table_id'  # replace with your BigQuery table ID
+
+        client = hook.get_client()
+        job_config = bigquery.LoadJobConfig(
+            schema=[
+                bigquery.SchemaField("month", "STRING"),
+                bigquery.SchemaField("bidding_no", "INTEGER"),
+                bigquery.SchemaField("vehicle_class", "STRING"),
+                bigquery.SchemaField("quota", "INTEGER"),
+                bigquery.SchemaField("bids_success", "INTEGER"),
+                bigquery.SchemaField("bids_received", "INTEGER"),
+                bigquery.SchemaField("premium", "INTEGER"),
+            ],
+            write_disposition="WRITE_TRUNCATE", 
+        )
+        project_id = 'is3107-418903'  # replace with your GCP project ID
+        dataset_id = 'coe'  # replace with your BigQuery dataset ID
+        table_id = 'coe'  # replace with your BigQuery table ID
         destination_table = f"{project_id}.{dataset_id}.{table_id}"
 
-        # Load the DataFrame to BigQuery
-        hook.insert_rows(dataframe, destination_table, auto_create_table=True)
+        try:
+            job = client.load_table_from_dataframe(dataframe, destination_table, job_config=job_config)
+            job.result() 
+            print(f"Loaded {dataframe.shape[0]} rows into {table_id}")
+        except Exception as e:
+            print(f"An error occurred while loading data to BigQuery: {e}")
     
     df = retrieve_coe()
     save_coe_csv(df)
+    df2 = transform_type(df)
+    save_data_to_bq(df2)
 
 dag = coe_retriever()
