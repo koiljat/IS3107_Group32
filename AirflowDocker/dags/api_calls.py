@@ -62,12 +62,12 @@ def api_calls_taskflow():
         object_name = 'carAPI/api.json'
         data = {}
 
-        try:
-            file_content = gcs_hook.download(bucket_name=bucket_name, object_name=object_name)
-            data = json.loads(file_content)
+        # try:
+        #     file_content = gcs_hook.download(bucket_name=bucket_name, object_name=object_name)
+        #     data = json.loads(file_content)
         
-        except Exception as e:
-            data = {}
+        # except Exception as e:
+        #     data = {}
 
         return data
     
@@ -94,6 +94,7 @@ def api_calls_taskflow():
                 #populate dictionary with carAPI first
                 trim_info = get_trim_details(make, model, year)
                 if trim_info:
+                    
                     query_temp_dict['model_make_id'] = trim_info['make_model_id']
                     query_temp_dict['model_trim'] = trim_info['id']
                     query_temp_dict['model_year'] = trim_info['year']
@@ -115,18 +116,35 @@ def api_calls_taskflow():
                     model_info = get_car_query_trims(make, model, year)
                     if model_info:
                         first_trim = model_info[0]
-                        query_temp_dict['model_make_id'] = query_temp_dict.get('model_make_id', first_trim['model_make_id'])
-                        query_temp_dict['model_name'] = query_temp_dict.get('model_name', first_trim['model_name'])
-                        query_temp_dict['model_trim'] = query_temp_dict.get('model_trim', first_trim['model_trim'])
-                        query_temp_dict['model_year'] = query_temp_dict.get('model_year', first_trim['model_year'])
-                        query_temp_dict['model_body'] = query_temp_dict.get('model_body', first_trim['model_body'])
-                        query_temp_dict['model_seats'] = query_temp_dict.get('model_seats', first_trim['model_seats'])
-                        query_temp_dict['model_weight_kg'] = query_temp_dict.get('model_weight_kg', first_trim['model_weight_kg'])
-                        query_temp_dict['model_engine_fuel'] = query_temp_dict.get('model_engine_fuel', first_trim['model_engine_fuel'])
-                        query_temp_dict['model_engine_cyl'] = query_temp_dict.get('model_engine_cyl', first_trim['model_engine_cyl'])
-                        query_temp_dict['model_drive'] = query_temp_dict.get('model_drive', first_trim['model_drive'])
-                        query_temp_dict['model_transmission_type'] = query_temp_dict.get('model_transmission_type', first_trim['model_transmission_type'])
-                        query_temp_dict['model_fuel_cap_l'] = query_temp_dict.get('model_fuel_cap_l', first_trim['model_fuel_cap_l'])
+                        print(model_info[0])
+                        print(query_string, query_temp_dict)
+                        
+                        if query_temp_dict['model_make_id'] is None:
+                            query_temp_dict['model_make_id'] = first_trim['model_make_id']
+                        if query_temp_dict['model_name'] is None:
+                            query_temp_dict['model_name'] = first_trim['model_name']
+                        if query_temp_dict['model_trim'] is None:
+                            query_temp_dict['model_trim'] = first_trim['model_trim']
+                        if query_temp_dict['model_year'] is None:
+                            query_temp_dict['model_year'] = first_trim['model_year']
+                        if query_temp_dict['model_body'] is None:
+                            query_temp_dict['model_body'] = first_trim['model_body']
+                        if query_temp_dict['model_seats'] is None:
+                            query_temp_dict['model_seats'] = first_trim['model_seats']
+                        if query_temp_dict['model_weight_kg'] is None:
+                            query_temp_dict['model_weight_kg'] = first_trim['model_weight_kg']
+                        if query_temp_dict['model_engine_fuel'] is None:
+                            query_temp_dict['model_engine_fuel'] = first_trim['model_engine_fuel']
+                        if query_temp_dict['model_engine_cyl'] is None:
+                            query_temp_dict['model_engine_cyl'] = first_trim['model_engine_cyl']
+                        if query_temp_dict['model_drive'] is None:
+                            query_temp_dict['model_drive'] = first_trim['model_drive']
+                        if query_temp_dict['model_transmission_type'] is None:
+                            query_temp_dict['model_transmission_type'] = first_trim['model_transmission_type']
+                        if query_temp_dict['model_fuel_cap_l'] is None:
+                            query_temp_dict['model_fuel_cap_l'] = first_trim['model_fuel_cap_l']
+                        
+                        print(query_string, query_temp_dict)
                         
                 # Update dict
                 all_values_none = all(value is None for value in query_temp_dict.values()) # if both APIS failed
@@ -183,18 +201,35 @@ def api_calls_taskflow():
                     model_info = get_car_query_trims(make, model, year)
                     if model_info:
                         first_trim = model_info[0]
-                        query_temp_dict['model_make_id'] = query_temp_dict.get('model_make_id', first_trim['model_make_id'])
-                        query_temp_dict['model_name'] = query_temp_dict.get('model_name', first_trim['model_name'])
-                        query_temp_dict['model_trim'] = query_temp_dict.get('model_trim', first_trim['model_trim'])
-                        query_temp_dict['model_year'] = query_temp_dict.get('model_year', first_trim['model_year'])
-                        query_temp_dict['model_body'] = query_temp_dict.get('model_body', first_trim['model_body'])
-                        query_temp_dict['model_seats'] = query_temp_dict.get('model_seats', first_trim['model_seats'])
-                        query_temp_dict['model_weight_kg'] = query_temp_dict.get('model_weight_kg', first_trim['model_weight_kg'])
-                        query_temp_dict['model_engine_fuel'] = query_temp_dict.get('model_engine_fuel', first_trim['model_engine_fuel'])
-                        query_temp_dict['model_engine_cyl'] = query_temp_dict.get('model_engine_cyl', first_trim['model_engine_cyl'])
-                        query_temp_dict['model_drive'] = query_temp_dict.get('model_drive', first_trim['model_drive'])
-                        query_temp_dict['model_transmission_type'] = query_temp_dict.get('model_transmission_type', first_trim['model_transmission_type'])
-                        query_temp_dict['model_fuel_cap_l'] = query_temp_dict.get('model_fuel_cap_l', first_trim['model_fuel_cap_l'])
+                        print(model_info[0])
+                        print(query_string, query_temp_dict)
+                        
+                        if query_temp_dict['model_make_id'] is None:
+                            query_temp_dict['model_make_id'] = first_trim['model_make_id']
+                        if query_temp_dict['model_name'] is None:
+                            query_temp_dict['model_name'] = first_trim['model_name']
+                        if query_temp_dict['model_trim'] is None:
+                            query_temp_dict['model_trim'] = first_trim['model_trim']
+                        if query_temp_dict['model_year'] is None:
+                            query_temp_dict['model_year'] = first_trim['model_year']
+                        if query_temp_dict['model_body'] is None:
+                            query_temp_dict['model_body'] = first_trim['model_body']
+                        if query_temp_dict['model_seats'] is None:
+                            query_temp_dict['model_seats'] = first_trim['model_seats']
+                        if query_temp_dict['model_weight_kg'] is None:
+                            query_temp_dict['model_weight_kg'] = first_trim['model_weight_kg']
+                        if query_temp_dict['model_engine_fuel'] is None:
+                            query_temp_dict['model_engine_fuel'] = first_trim['model_engine_fuel']
+                        if query_temp_dict['model_engine_cyl'] is None:
+                            query_temp_dict['model_engine_cyl'] = first_trim['model_engine_cyl']
+                        if query_temp_dict['model_drive'] is None:
+                            query_temp_dict['model_drive'] = first_trim['model_drive']
+                        if query_temp_dict['model_transmission_type'] is None:
+                            query_temp_dict['model_transmission_type'] = first_trim['model_transmission_type']
+                        if query_temp_dict['model_fuel_cap_l'] is None:
+                            query_temp_dict['model_fuel_cap_l'] = first_trim['model_fuel_cap_l']
+                            
+                        print(query_string, query_temp_dict)
                         
                 # Update dict
                 all_values_none = all(value is None for value in query_temp_dict.values()) # if both APIS failed
@@ -214,6 +249,69 @@ def api_calls_taskflow():
         json_data = json.dumps(dict)
         gcs_hook.upload(bucket_name=bucket_name, object_name=object_name, data=json_data.encode(), mime_type='application/json')
         
+        
+    @task(task_id='save_api_data_to_bigquery')
+    def save_api_data_to_bigquery(dict):
+    
+        hook = BigQueryHook(bigquery_conn_id='google_cloud_default', use_legacy_sql=False)
+        client = hook.get_client()
+        rows = []
+        for key, values in dict.items():
+            make, model, year = key.replace('(', '').replace(')', '').split(',')
+            row = {'make': make, 'model': model, 'year': year}
+            if values is not None:
+                row.update(values)
+                rows.append(row)
+        df = pd.DataFrame(rows)
+        
+        table_id = 'is3107-418903.api.api'
+        
+        column_types = {
+            "make": "str",
+            "model": "str",
+            "year": "int64",
+            "model_make_id": "int",
+            "model_name": "str",
+            "model_trim": "int",
+            "model_year": "int",
+            "model_body": "str",
+            "model_seats": "int",
+            "model_weight_kg": "float",
+            "model_engine_fuel": "str",
+            "model_engine_cyl": "str",
+            "model_drive": "str"
+        }
+
+        # Convert each column to its specified data type
+        for col, dtype in column_types.items():
+            df[col] = df[col].astype(dtype)
+        
+        job_config = bigquery.LoadJobConfig(
+            schema=[
+                bigquery.SchemaField("make", "STRING"),
+                bigquery.SchemaField("model", "STRING"),
+                bigquery.SchemaField("year", "INTEGER"),
+                bigquery.SchemaField("model_make_id", "INTEGER"),
+                bigquery.SchemaField("model_name", "STRING"),
+                bigquery.SchemaField("model_trim", "INTEGER"),
+                bigquery.SchemaField("model_year", "INTEGER"),
+                bigquery.SchemaField("model_body", "STRING"),
+                bigquery.SchemaField("model_seats", "INTEGER"),
+                bigquery.SchemaField("model_weight_kg", "FLOAT"),
+                bigquery.SchemaField("model_engine_fuel", "STRING"),
+                bigquery.SchemaField("model_engine_cyl", "STRING"),
+                bigquery.SchemaField("model_drive", "STRING"),
+            ],
+            write_disposition="WRITE_TRUNCATE", 
+        )
+
+        try:
+            job = client.load_table_from_dataframe(df, table_id, job_config=job_config)
+            job.result() 
+            print(f"Loaded {df.shape[0]} rows into {table_id}")
+        except Exception as e:
+            print(f"An error occurred while loading data to BigQuery: {e}")
+        
     @task(task_id="save_api_csv")
     def save_api_csv(dict):
         gcs_hook = GCSHook(google_cloud_storage_conn_id='google_cloud_default')
@@ -230,18 +328,7 @@ def api_calls_taskflow():
         csv_data = df.to_csv(index=False).encode()
     
         gcs_hook.upload(bucket_name=bucket_name, object_name=object_name, data=csv_data)
-        
-    load_csv_to_bigquery = GCSToBigQueryOperator(
-        task_id='load_csv_to_bigquery',
-        bucket='is3107-datasets',
-        source_objects=['carAPI/api.csv'],
-        destination_project_dataset_table='api.api',
-        source_format='CSV',
-        skip_leading_rows=1,
-        write_disposition='WRITE_TRUNCATE',
-        gcp_conn_id='google_cloud_default',
-        autodetect=True
-    )
+
         
         
     motorist_df = fetch_motorist()
@@ -250,7 +337,8 @@ def api_calls_taskflow():
     first_dict = execute_api_calls_for_motorist(motorist_df, api_dict)
     second_dict = execute_api_calls_for_sgcarmart(sgcarmart_df, first_dict)
     save_api_json(second_dict)
-    save_api_csv(second_dict) >> load_csv_to_bigquery 
+    #save_api_csv(second_dict)
+    save_api_data_to_bigquery(second_dict)
     
 
 dag = api_calls_taskflow()
