@@ -11,7 +11,7 @@ from ml_functions.ml_pipeline import data_encoding, change_reg_date_to_years, dr
 @dag(dag_id='run_ml_taskflow', start_date=datetime(2024,1,1), schedule=None, catchup=False, tags=['ml_pipeline'])
 
 def run_ml_taskflow():
-    @task(task_id="read_dataset")
+    @task(task_id="run_ml_taskflow")
     def run_ml_taskflow():
         import joblib
 
@@ -24,7 +24,6 @@ def run_ml_taskflow():
         data = data.dropna()
         data = change_reg_date_to_years(data)
         data = drop_cols(data)
-        print(data.dtypes)
         data = data_encoding(data)
 
         x = drop_highly_correlated_cols(data)

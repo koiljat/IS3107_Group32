@@ -3,10 +3,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import GradientBoostingRegressor
+import numpy as np
 
 def data_encoding(data):
     for index, row in data.iterrows():
-        row['model_body'] = row['model_body'].lower()
+        row['model_body'] = str(row['model_body']).lower()
         if 'sport' in row['model_body']:
             data.at[index, 'model_body'] ='SUV'
         elif 'compact' in row['model_body'] or 'subcompact' in row['model_body']:
@@ -19,7 +20,7 @@ def data_encoding(data):
     data = pd.get_dummies(data, columns=['model_body'], drop_first=True)
 
     for index, row in data.iterrows():
-        row['model_transmission_type'] = row['model_transmission_type'].lower()
+        row['model_transmission_type'] = str(row['model_transmission_type']).lower()
         if 'continuously' in row['model_transmission_type'] or 'single Speed' in row['model_transmission_type'] or 'cvt' in row['model_transmission_type']:
             data.at[index, 'model_transmission_type'] ='CVT'
         elif 'automatic' in row['model_transmission_type']:
@@ -34,7 +35,7 @@ def data_encoding(data):
     data = pd.get_dummies(data, columns=['model_transmission_type'], drop_first=True)
 
     for index, row in data.iterrows():
-        row['model_drive'] = row['model_drive'].lower()
+        row['model_drive'] = str(row['model_drive']).lower()
         if 'all' in row['model_drive'] or '4wd' in row['model_drive'] or 'awd' in row['model_drive'] or 'four' in row['model_drive']:
             data.at[index, 'model_drive'] ='All Wheel Drive'
         elif 'front' in row['model_drive']:
@@ -47,7 +48,7 @@ def data_encoding(data):
     data = pd.get_dummies(data, columns=['model_drive'], drop_first=True)
 
     for index, row in data.iterrows():
-        row['model_engine_fuel'] = row['model_engine_fuel'].lower()
+        row['model_engine_fuel'] = str(row['model_engine_fuel']).lower()
         if 'premium' in row['model_engine_fuel']:
             data.at[index, 'model_engine_fuel'] ='Premium'
         elif 'regular' in row['model_engine_fuel']:
@@ -68,7 +69,7 @@ def data_encoding(data):
 
     data['model_engine_cyl'] = data['model_engine_cyl'].astype("string")
     for index, row in data.iterrows():
-        row['model_engine_cyl'] = row['model_engine_cyl'].lower()
+        row['model_engine_cyl'] = str(row['model_engine_cyl']).lower()
         if '2' in row['model_engine_cyl']:
             data.at[index, 'model_engine_cyl'] ='2'
         elif '3' in row['model_engine_cyl']:
@@ -96,13 +97,14 @@ def data_encoding(data):
     
     data['brands'] = "others"
 
-    for i in range(len(data)):
-        row = data.iloc[i]
-        model = row['make']
+    data['brands'] = "others"
+
+    for index, row in data.iterrows():
+        model = str(row['make'])
         for group, brand_list in brands.items():
             for brand in brand_list:
                 if brand.lower() in model.lower():
-                    data.at[i, 'brands'] = group
+                    data.at[index, 'brands'] = group
 
     ordinal_mapping = {
         'budget': 1,
@@ -122,23 +124,24 @@ def drop_cols(data):
 def change_reg_date_to_years(data):
     data['years_since_reg'] = 0
 
-    for i in range(len(data)):
-        row = data.iloc[i]
+    for index, row in data.iterrows():
         year = row['model_year']
-        data.at[i, 'years_since_reg'] = 2024-year
+        data.at[index, 'years_since_reg'] = 2024-year
 
     data = data.drop(columns=['model_year'])
     return data
 
 def drop_highly_correlated_cols(data):
-    columns_to_keep = ['owners', 'eng_cap', 'depreciation', 'mileage', 'power', 'coe_left',
-       'model_seats', 'model_weight_kg', 'model_body_Coupe',
-       'model_body_Hatchback', 'model_body_Minivan', 'model_body_SUV',
-       'model_body_Sedan', 'model_transmission_type_CVT',
-       'model_transmission_type_Manual', 'model_drive_Front Wheel Drive',
-       'model_drive_Rear Wheel Drive', 'model_engine_fuel_Premium', 'brands']
-    
-    data = data[columns_to_keep]
+
+    independent_vars = data.drop(columns=['price'])
+
+    correlation = independent_vars.corr()
+
+    threshold = 0.7
+    upper = correlation.where(np.triu(np.ones(correlation.shape), k=1).astype(bool))
+    to_drop = [column for column in upper.columns if any(upper[column].abs() > threshold)]
+    data = data.drop(columns=to_drop)
+
     return data
 
 def train_evaluate_GB(x,y):
