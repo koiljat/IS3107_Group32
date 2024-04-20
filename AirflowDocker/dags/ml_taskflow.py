@@ -8,25 +8,23 @@ from ml_functions.ml_pipeline import data_encoding, change_reg_date_to_years, dr
 
 
 
-@dag(dag_id='ml_taskflow', start_date=datetime(2024,1,1), schedule=None, catchup=False, tags=['ml_pipeline'])
+@dag(dag_id='run_ml_taskflow', start_date=datetime(2024,1,1), schedule=None, catchup=False, tags=['ml_pipeline'])
 
-def ml_taskflow():
+def run_ml_taskflow():
     @task(task_id="read_dataset")
-    def read_dataset():
+    def run_ml_taskflow():
+        import joblib
+
         
         hook = BigQueryHook(gcp_conn_id='google_cloud_default', use_legacy_sql=False)
         sql = """
-        SELECT * FROM `is3107-418903.factTable.carsCombinedFinal`
+        SELECT * FROM `is3107-418903.final.carsCombinedFinal`
         """
         data = hook.get_pandas_df(sql=sql)
-
-        return data
-    
-    @task(task_id="train_evaluate_model")
-    def train_evaluate_model(data):
-        import joblib
+        data = data.dropna()
         data = change_reg_date_to_years(data)
         data = drop_cols(data)
+        print(data.dtypes)
         data = data_encoding(data)
 
         x = drop_highly_correlated_cols(data)
@@ -36,7 +34,6 @@ def ml_taskflow():
         joblib.dump(gb_regressor, 'modelGB.pkl')
         r2_DT, dt_regressor = train_evaluate_DT(x,y)
         joblib.dump(dt_regressor, 'modelDT.pkl')
-
         data.to_csv('dataset.csv', index=False)
 
         bucket_name = 'is3107-model'
@@ -52,9 +49,8 @@ def ml_taskflow():
 
         return r2_GB
     
-    dataset = read_dataset()
-    train_evaluate_model(dataset)
+    run_ml_taskflow()
     
 
     
-ml_tasks_dag = ml_taskflow()
+ml_tasks_dag = run_ml_taskflow()
