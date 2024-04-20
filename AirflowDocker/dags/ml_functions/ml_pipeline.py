@@ -6,7 +6,7 @@ from sklearn.ensemble import GradientBoostingRegressor
 
 def data_encoding(data):
     for index, row in data.iterrows():
-        row['model_body'] = row['model_body'].lower()
+        row['model_body'] = row['model_body'].astype(str).lower()
         if 'sport' in row['model_body']:
             data.at[index, 'model_body'] ='SUV'
         elif 'compact' in row['model_body'] or 'subcompact' in row['model_body']:
