@@ -220,7 +220,7 @@ def run_test_scraper(page_num):
     print("--------------------------")
     col_names = ["name","price","depreciation","mileage","eng_cap","power","reg_date","coe_left","owners","omv","arf","accessories"]
     df = pd.DataFrame(info, columns=col_names)
-    df["date"] = dates
+    df["date_listed"] = dates
     
     return df
 
@@ -256,7 +256,7 @@ def run_scraper():
             time_elapsed = end_time - start_time
             col_names = ["name","price","depreciation","mileage","eng_cap","power","reg_date","coe_left","owners","omv","arf","accessories"]
             df = pd.DataFrame(data, columns=col_names)
-            df["date"] = dates
+            df["date_listed"] = dates
             print(f"Scraping completed in {time_elapsed/60}m.")
 
             return df
@@ -264,7 +264,7 @@ def run_scraper():
         sleep(2)
     col_names = ["name","price","depreciation","mileage","eng_cap","power","reg_date","coe_left","owners","omv","arf","accessories"]
     df = pd.DataFrame(data, columns=col_names)
-    df["date"] = dates
+    df["date_listed"] = dates
     
     return df
         
@@ -298,7 +298,7 @@ def run_daily_scraper():
             time_elapsed = end_time - start_time
             col_names = ["name","price","depreciation","mileage","eng_cap","power","reg_date","coe_left","owners","omv","arf","accessories"]
             df = pd.DataFrame(data, columns=col_names)
-            df["date"] = all_dates
+            df["date_listed"] = all_dates
             print(f"Scraping completed in {time_elapsed/60}m.")
 
             return df
@@ -307,7 +307,7 @@ def run_daily_scraper():
     col_names = ["name","price","depreciation","mileage","eng_cap","power","reg_date","coe_left","owners","omv","arf","accessories"]
     df = pd.DataFrame(data, columns=col_names)
     dates = dates[:len(df)]
-    df["date"] = all_dates
+    df["date_listed"] = all_dates
     
     return df
 

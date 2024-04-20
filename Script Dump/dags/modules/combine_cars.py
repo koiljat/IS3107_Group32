@@ -40,21 +40,14 @@ Concat and clean the combined df to ensure data consistency
 '''
 def transform_car_combined(sgcarmart_df, motorist_df):
     # rename motorist_df to match sgcarmart_df
-    motorist_renamed = motorist_df.rename(columns={"model":"name", "milleage":"mileage", "registration_date":"reg_date", "no_of_owner":"owners", "capacity":"eng_cap"})
+    motorist_df.rename(columns={"model":"name", "milleage":"mileage", "registration_date":"reg_date", "no_of_owner":"owners", "capacity":"eng_cap"}, inplace=True)
     # concat both dfs 
-    combined_df = pd.concat([sgcarmart_df, motorist_renamed], ignore_index=True)
+    combined_df = pd.concat([sgcarmart_df, motorist_df], ignore_index=True)
     # drop any duplicates that have same price, mileage and registration date
     combined_df = combined_df.drop_duplicates(subset=["price","mileage","reg_date"], ignore_index=True)
-    # add the date of listing
-    combined_df["date_listed"] = (datetime.today() - timedelta(days=1)).strftime('%d-%b-%Y')
-
     # remove \n as csv reads it as a delimiter
     combined_df["accessories"] = combined_df["accessories"].apply(lambda x : x.replace("\n", ""))
-    
-    combined_df.dropna(inplace=True)
-    
-    print(combined_df.columns)
-    
+
     return combined_df
 
 
@@ -62,6 +55,7 @@ def transform_car_combined(sgcarmart_df, motorist_df):
 Load the combined df to a temp table in BQ
 '''
 def load_temp_bq_table(df):
+    df.to_csv("testing.csv")
     hook = BigQueryHook(bigquery_conn_id='gcp_is3107', use_legacy_sql=False)
     client = hook.get_client()
     

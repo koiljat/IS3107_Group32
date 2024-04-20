@@ -111,7 +111,7 @@ def get_details(x):
                                       "coe_left": coe_left,
                                       "accessories": accessories, 
                                       "description": description,
-                                      "date": formatted_date_string},
+                                      "date_listed": formatted_date_string},
                                       index=[0])
             
             res = pd.concat([res, curr_data], ignore_index=True)

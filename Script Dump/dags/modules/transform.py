@@ -85,7 +85,7 @@ def transform(df):
     df[['depreciation', 'price', 'milleage', 'omv', 'arf', 'power', 'capacity']] = df[['depreciation', 'price', 'milleage', 'omv', 'arf', 'power', 'capacity']].applymap(format_numeric)
     df[['registration_date', 'coe_expiry_date' ]] = df[['registration_date', 'coe_expiry_date']].applymap(format_date)
     df.loc[:, "coe_left"] = df.loc[:, "coe_expiry_date"].apply(get_coe_duration)
-    df = df.loc[:, ['model', 'price', 'depreciation', 'milleage', 'registration_date', 'coe_left', 'no_of_owner', 'omv', 'arf', 'power', 'capacity', 'accessories', 'date']]
+    df = df.loc[:, ['model', 'price', 'depreciation', 'milleage', 'registration_date', 'coe_left', 'no_of_owner', 'omv', 'arf', 'power', 'capacity', 'accessories', 'date_listed']]
     df = df.dropna()
     
     dtype_conversion = {
@@ -101,7 +101,7 @@ def transform(df):
     "power": float,
     "capacity": float,
     "accessories": str,
-    "date": str
+    "date_listed": str
     }
 
     # Convert data types
