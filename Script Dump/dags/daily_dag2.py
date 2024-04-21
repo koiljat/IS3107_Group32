@@ -7,9 +7,11 @@ from modules.transform import transform
 from modules.sgcarmart import run_test_scraper, transform_sgcarmart_data
 from modules.combine_cars import append_final_table, transform_car_combined, load_temp_bq_table
 from modules.ml_pipeline import data_encoding, change_reg_date_to_years, drop_cols, drop_highly_correlated_cols, train_evaluate_RF
+from modules.api_operations import api_calling_logic_motorist, upload_to_BQ, api_calling_logic_sgcarmart
 
 from io import StringIO
 import pandas as pd
+import json
 
 
 default_args = {
@@ -88,43 +90,43 @@ def webscraper_taskflow():
         sgcarmart_group()
 
     @task_group(group_id='staging_area')
-    def merge_data():
+    def api_and_merge_data():
+        @task(task_id='fetch_motoristsg_from_gcs')
+        def get_motoristsg_from_gcs():
+            gcs_hook = GCSHook(gcp_conn_id='google_cloud_default')
+                
+            bucket_name = 'is3107-datasets'
+            folder_name = 'motoristsg'
+            today = datetime.now().strftime("%d%m%Y")
+            file_name = f'{today}_motorist.csv'
+            destination_blob_name = f'{folder_name}/{file_name}'
+
+            # Download the content of the file
+            file_content = gcs_hook.download(bucket_name=bucket_name, object_name=destination_blob_name)
+            file_str = file_content.decode('utf-8')
+            dataframe = pd.read_csv(StringIO(file_str))
+            
+            return dataframe
+        
+        @task(task_id='fetch_sgcarmart_from_gcs')
+        def get_sgcarmart_from_gcs():
+            gcs_hook = GCSHook(gcp_conn_id='google_cloud_default')
+
+            bucket_name = 'is3107-datasets'
+            folder_name = 'sgcarmart'
+            today = datetime.now().strftime("%d%m%Y")
+            file_name = f'{today}_sgcarmart.csv'
+            destination_blob_name = f'{folder_name}/{file_name}'
+
+            # Download the content of the file
+            file_content = gcs_hook.download(bucket_name=bucket_name, object_name=destination_blob_name)
+            file_str = file_content.decode('utf-8')
+            dataframe = pd.read_csv(StringIO(file_str))
+            
+            return dataframe
         
         @task_group(group_id='big_query_merge')
-        def big_query_merge():            
-            @task(task_id='fetch_motoristsg_from_gcs')
-            def get_motoristsg_from_gcs():
-                gcs_hook = GCSHook(gcp_conn_id='google_cloud_default')
-                
-                bucket_name = 'is3107-datasets'
-                folder_name = 'motoristsg'
-                today = datetime.now().strftime("%d%m%Y")
-                file_name = f'{today}_motorist.csv'
-                destination_blob_name = f'{folder_name}/{file_name}'
-
-                # Download the content of the file
-                file_content = gcs_hook.download(bucket_name=bucket_name, object_name=destination_blob_name)
-                file_str = file_content.decode('utf-8')
-                dataframe = pd.read_csv(StringIO(file_str))
-            
-                return dataframe
-            
-            @task(task_id='fetch_sgcarmart_from_gcs')
-            def get_sgcarmart_from_gcs():
-                gcs_hook = GCSHook(gcp_conn_id='google_cloud_default')
-        
-                bucket_name = 'is3107-datasets'
-                folder_name = 'sgcarmart'
-                today = datetime.now().strftime("%d%m%Y")
-                file_name = f'{today}_sgcarmart.csv'
-                destination_blob_name = f'{folder_name}/{file_name}'
-
-                # Download the content of the file
-                file_content = gcs_hook.download(bucket_name=bucket_name, object_name=destination_blob_name)
-                file_str = file_content.decode('utf-8')
-                dataframe = pd.read_csv(StringIO(file_str))
-            
-                return dataframe
+        def big_query_merge(motorist_data, sgcarmart_data):            
             
             @task(task_id='transform_car_combined')
             def transform_car(df1, df2):
@@ -138,26 +140,59 @@ def webscraper_taskflow():
             def append_final():
                 return append_final_table()
                 
-            motorist_data = get_motoristsg_from_gcs()
-            sgcarmart_data = get_sgcarmart_from_gcs()
             transformed_data = transform_car(sgcarmart_data, motorist_data)
             load_temp(transformed_data) >> append_final()
         
         @task_group(group_id='query_CarAPI')
-        def query_CarAPI():
-            @task(task_id='query_sgcarmart')
-            def query_sgcarmart():
-                pass
+        def query_CarAPI(motorist_data, sgcarmart_data):
+            @task(task_id="fetch_api_json")
+            def fetch_api_json():
+                gcs_hook = GCSHook(gcp_conn_id='google_cloud_default')
             
-            @task(task_id='query_motoristsg')
-            def query_motoristsg():
-                pass
+                bucket_name = 'is3107-datasets'
+                object_name = 'carAPI/api.json'
+                data = {}
+
+                try:
+                    file_content = gcs_hook.download(bucket_name=bucket_name, object_name=object_name)
+                    data = json.loads(file_content)
+                
+                except Exception as e:
+                    data = {}
+
+                return data
             
-            query_sgcarmart()
-            query_motoristsg()
-        
-        big_query_merge()
-        query_CarAPI()
+            @task(task_id="execute_api_calls_for_motorist")
+            def execute_api_calls_for_motorist(df, dict):
+                return api_calling_logic_motorist(df, dict)
+            
+            
+            @task(task_id="execute_api_calls_for_sgcarmart")
+            def execute_api_calls_for_sgcarmart(df, dict):
+                return api_calling_logic_sgcarmart(df, dict)
+            
+            @task(task_id="save_api_json")
+            def save_api_json(dict):
+                gcs_hook = GCSHook(google_cloud_storage_conn_id='google_cloud_default')
+                bucket_name = 'is3107-datasets'
+                object_name = 'carAPI/api.json'
+                json_data = json.dumps(dict)
+                gcs_hook.upload(bucket_name=bucket_name, object_name=object_name, data=json_data.encode(), mime_type='application/json')
+                
+            @task(task_id='save_api_data_to_bigquery')
+            def save_api_data_to_bigquery(dict):
+                return upload_to_BQ(dict)
+            
+            api_json_data = fetch_api_json()
+            first_dict = execute_api_calls_for_motorist(motorist_data, api_json_data)
+            second_dict = execute_api_calls_for_sgcarmart(sgcarmart_data, first_dict)
+            save_api_json(second_dict)
+            save_api_data_to_bigquery(second_dict)
+            
+        motorist_data = get_motoristsg_from_gcs()
+        sgcarmart_data = get_sgcarmart_from_gcs()
+        big_query_merge(motorist_data, sgcarmart_data)
+        query_CarAPI(motorist_data, sgcarmart_data)
     
     
     @task(task_id='end')
@@ -204,6 +239,6 @@ def webscraper_taskflow():
 
         return r2_RF
     
-    initiate_dag() >> web_scraping() >> merge_data() >> BQ_transformation() >> train_model() >> end()
+    initiate_dag() >> web_scraping() >> api_and_merge_data() >> BQ_transformation() >> train_model() >> end()
 
 dag = webscraper_taskflow()
