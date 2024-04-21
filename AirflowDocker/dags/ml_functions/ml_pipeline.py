@@ -3,6 +3,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.ensemble import RandomForestRegressor
 import numpy as np
 
 def data_encoding(data):
@@ -164,3 +165,13 @@ def train_evaluate_DT(x,y):
     r2_DT = r2_score(y_DT_test, y_DT_pred)
 
     return r2_DT, dt_regressor
+
+def train_evaluate_RF(x,y):
+    X_RF_train, X_RF_test, y_RF_train, y_RF_test = train_test_split(x, y, test_size=0.2, random_state=42)
+    rf_regressor = RandomForestRegressor(n_estimators=100, random_state=42)
+    rf_regressor.fit(X_RF_train, y_RF_train)
+    y_rf_pred = rf_regressor.predict(X_RF_test)
+
+    r2_RF = r2_score(y_RF_test, y_rf_pred)
+
+    return r2_RF, rf_regressor

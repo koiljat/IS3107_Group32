@@ -4,7 +4,7 @@ from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
 
 
-from ml_functions.ml_pipeline import data_encoding, change_reg_date_to_years, drop_cols, drop_highly_correlated_cols, train_evaluate_GB, train_evaluate_DT
+from ml_functions.ml_pipeline import data_encoding, change_reg_date_to_years, drop_cols, drop_highly_correlated_cols, train_evaluate_RF
 
 
 
@@ -29,24 +29,22 @@ def run_ml_taskflow():
         x = drop_highly_correlated_cols(data)
         y=data['price']
 
-        r2_GB, gb_regressor = train_evaluate_GB(x,y)
-        joblib.dump(gb_regressor, 'modelGB.pkl')
-        r2_DT, dt_regressor = train_evaluate_DT(x,y)
-        joblib.dump(dt_regressor, 'modelDT.pkl')
+        r2_RF, rf_regressor = train_evaluate_RF(x,y)
+        joblib.dump(rf_regressor, 'modelRF.pkl')
         data.to_csv('dataset.csv', index=False)
+        
 
         bucket_name = 'is3107-model'
-        object_name_modelGB = 'ml_model_test/modelGB.pkl'
-        object_name_modelDT = 'ml_model_test/modelDT.pkl'
-        object_name_model_dataset = 'ml_model_test/dataset.csv'
+        object_name_modelRF = 'ml_model/modelRF.pkl'
+
+        object_name_model_dataset = 'ml_model/dataset.csv'
 
         gcs_hook = GCSHook()
-        gcs_hook.upload(bucket_name=bucket_name, object_name=object_name_modelGB, filename='modelGB.pkl')
-        gcs_hook.upload(bucket_name=bucket_name, object_name=object_name_modelDT, filename='modelDT.pkl')
+        gcs_hook.upload(bucket_name=bucket_name, object_name=object_name_modelRF, filename='modelRF.pkl')
 
         gcs_hook.upload(bucket_name=bucket_name, object_name=object_name_model_dataset, filename='dataset.csv')
 
-        return r2_GB
+        return r2_RF
     
     run_ml_taskflow()
     
