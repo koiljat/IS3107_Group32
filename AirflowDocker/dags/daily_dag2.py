@@ -197,13 +197,8 @@ def webscraper_taskflow():
     @task(task_id='end')
     def end():
         print(f"End task received")
-        
-    
-    @task_group(group_id='data_warehouse')
-    def BQ_transformation():
-        pass
 
-    @task_group(group_id='serving_layer')
+    @task(task_id='serving_layer')
     def train_model():
         import joblib
         
