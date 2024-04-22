@@ -231,6 +231,6 @@ def webscraper_taskflow():
         gcs_hook.upload(bucket_name=bucket_name, object_name=object_name_model_dataset, filename='dataset.csv')
 
     
-    initiate_dag() >> web_scraping() >> api_and_merge_data() >> BQ_transformation() >> train_model() >> end()
+    initiate_dag() >> web_scraping() >> api_and_merge_data() >> train_model() >> end()
 
 dag = webscraper_taskflow()
