@@ -1,6 +1,7 @@
 from datetime import datetime
 from airflow.decorators import dag, task, task_group
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
+from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
 from modules.extract import get_links, get_details
 from modules.transform import transform
 from modules.sgcarmart import run_scraper, transform_sgcarmart_data
@@ -8,6 +9,7 @@ from modules.combine_cars import append_final_table, transform_car_combined, loa
 from io import StringIO
 import pandas as pd
 from modules.api_operations import api_calling_logic_motorist, upload_to_BQ, api_calling_logic_sgcarmart
+from modules.ml_pipeline import data_encoding, change_reg_date_to_years, drop_cols, drop_highly_correlated_cols, train_evaluate_RF
 import json
 
 
@@ -203,7 +205,41 @@ def webscraper_taskflow():
 
     @task_group(group_id='serving_layer')
     def train_model():
-        pass
+        import joblib
+
+        
+        import joblib
+
+        
+        hook = BigQueryHook(gcp_conn_id='google_cloud_default', use_legacy_sql=False)
+        sql = """
+        SELECT * FROM `is3107-418903.final.carsCombinedFinal`
+        """
+        data = hook.get_pandas_df(sql=sql)
+        data = data.dropna()
+        data = change_reg_date_to_years(data)
+        data = drop_cols(data)
+        data = data_encoding(data)
+
+        x = drop_highly_correlated_cols(data)
+        y=data['price']
+
+        r2_RF, rf_regressor = train_evaluate_RF(x,y)
+        joblib.dump(rf_regressor, 'modelRF.pkl')
+        data.to_csv('dataset.csv', index=False)
+        
+
+        bucket_name = 'is3107-model'
+        object_name_modelRF = 'ml_model/modelRF.pkl'
+
+        object_name_model_dataset = 'ml_model/dataset.csv'
+
+        gcs_hook = GCSHook()
+        gcs_hook.upload(bucket_name=bucket_name, object_name=object_name_modelRF, filename='modelRF.pkl')
+
+        gcs_hook.upload(bucket_name=bucket_name, object_name=object_name_model_dataset, filename='dataset.csv')
+
+        return r2_RF
     
     initiate_dag() >> web_scraping() >> api_and_merge_data() >> BQ_transformation() >> train_model() >> end()
 
