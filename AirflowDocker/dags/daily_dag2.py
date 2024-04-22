@@ -206,10 +206,6 @@ def webscraper_taskflow():
     @task_group(group_id='serving_layer')
     def train_model():
         import joblib
-
-        
-        import joblib
-
         
         hook = BigQueryHook(gcp_conn_id='google_cloud_default', use_legacy_sql=False)
         sql = """
@@ -239,7 +235,6 @@ def webscraper_taskflow():
 
         gcs_hook.upload(bucket_name=bucket_name, object_name=object_name_model_dataset, filename='dataset.csv')
 
-        return r2_RF
     
     initiate_dag() >> web_scraping() >> api_and_merge_data() >> BQ_transformation() >> train_model() >> end()
 
