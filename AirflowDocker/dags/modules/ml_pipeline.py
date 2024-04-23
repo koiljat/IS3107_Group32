@@ -1,28 +1,28 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.ensemble import RandomForestRegressor
 import numpy as np
 
 def data_encoding(data):
     for index, row in data.iterrows():
-        row['model_body'] = str(row['model_body']).lower()
-        if 'sport' in row['model_body']:
+        row['model_body'] = row['model_body'].lower()
+        if 'sport' in row['model_body'] or 'suv' in row['model_body'] or 'crossover' in row['model_body']:
             data.at[index, 'model_body'] ='SUV'
-        elif 'compact' in row['model_body'] or 'subcompact' in row['model_body']:
-            data.at[index, 'model_body'] ='Compact Cars'
-        elif 'manual' in row['model_body']:
-            data.at[index, 'model_body'] ='Manual'
-        elif 'wagon' in row['model_body']:
+        elif 'compact' in row['model_body'] or 'subcompact' in row['model_body'] or 'sedan' in row['model_body'] or 'large' in row['model_body'] or 'midsize' in row['model_body']:
+            data.at[index, 'model_body'] ='Sedan'
+        elif 'coupe' in row['model_body'] or 'convertible' in row['model_body'] or 'two seaters' in row['model_body'] or 'roadster' in row['model_body']:
+            data.at[index, 'model_body'] ='Coupe'
+        elif 'wagon' in row['model_body'] or 'hatchback' in row['model_body'] or 'minivan' in row['model_body']:
             data.at[index, 'model_body'] ='Wagon'
+        else:
+            data.at[index, 'model_body'] ='Others'
 
     data = pd.get_dummies(data, columns=['model_body'], drop_first=True)
 
     for index, row in data.iterrows():
         row['model_transmission_type'] = str(row['model_transmission_type']).lower()
-        if 'continuously' in row['model_transmission_type'] or 'single Speed' in row['model_transmission_type'] or 'cvt' in row['model_transmission_type']:
+        if 'continuously' in row['model_transmission_type'] or 'single speed' in row['model_transmission_type'] or 'cvt' in row['model_transmission_type']:
             data.at[index, 'model_transmission_type'] ='CVT'
         elif 'automatic' in row['model_transmission_type']:
             data.at[index, 'model_transmission_type'] ='Automatic'
@@ -63,7 +63,6 @@ def data_encoding(data):
         elif 'electric' in row['model_engine_fuel']:
             data.at[index, 'model_engine_fuel'] ='Electric'
         else:
-            print(row['model_engine_fuel'])
             data.at[index, 'model_engine_fuel'] ='Others'
 
     data = pd.get_dummies(data, columns=['model_engine_fuel'], drop_first=True)
@@ -144,27 +143,6 @@ def drop_highly_correlated_cols(data):
     data = data.drop(columns=to_drop)
 
     return data
-
-def train_evaluate_GB(x,y):
-    X_GB_train, X_GB_test, y_GB_train, y_GB_test = train_test_split(x, y, test_size=0.2, random_state=42)
-    gb_regressor = GradientBoostingRegressor(n_estimators=100, random_state=42)  # 100 trees
-    gb_regressor.fit(X_GB_train, y_GB_train)
-    y_GB_pred = gb_regressor.predict(X_GB_test)
-    r2_GB = r2_score(y_GB_test, y_GB_pred)
-
-    return r2_GB, gb_regressor
-
-
-
-def train_evaluate_DT(x,y):
-    X_DT_train, X_DT_test, y_DT_train, y_DT_test = train_test_split(x, y, test_size=0.2, random_state=42)
-    dt_regressor = DecisionTreeRegressor(random_state=42)
-    dt_regressor.fit(X_DT_train, y_DT_train)
-    y_DT_pred = dt_regressor.predict(X_DT_test)
-
-    r2_DT = r2_score(y_DT_test, y_DT_pred)
-
-    return r2_DT, dt_regressor
 
 def train_evaluate_RF(x,y):
     X_RF_train, X_RF_test, y_RF_train, y_RF_test = train_test_split(x, y, test_size=0.2, random_state=42)
