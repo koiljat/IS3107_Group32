@@ -85,8 +85,8 @@ def webscraper_taskflow():
             transformed = transform_data(data)
             storage = dump_to_gcs(transformed)
             
-        motoristsg_group()
-        sgcarmart_group()
+        # motoristsg_group()
+        # sgcarmart_group()
 
     @task_group(group_id='staging_area')
     def api_and_merge_data():

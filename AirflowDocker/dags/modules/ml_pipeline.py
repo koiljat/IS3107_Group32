@@ -117,7 +117,7 @@ def data_encoding(data):
     return data
 
 def drop_cols(data):
-    columns_to_drop = ['model_trim', 'accessories', 'model_make_id', 'vehicle_class', 'coe_month', 'date_listed', 'coe_bidding_no']
+    columns_to_drop = ['model_trim', 'accessories', 'vehicle_class', 'coe_month', 'date_listed', 'coe_bidding_no']
     data = data.drop(columns=columns_to_drop)
     return data
 
@@ -125,10 +125,10 @@ def change_reg_date_to_years(data):
     data['years_since_reg'] = 0
 
     for index, row in data.iterrows():
-        year = row['model_year']
+        year = row['year']
         data.at[index, 'years_since_reg'] = 2024-year
 
-    data = data.drop(columns=['model_year'])
+    data = data.drop(columns=['year'])
     return data
 
 def drop_highly_correlated_cols(data):
