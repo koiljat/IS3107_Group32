@@ -118,7 +118,7 @@ def data_encoding(data):
     return data
 
 def drop_cols(data):
-    columns_to_drop = ['model_trim', 'accessories', 'model_make_id', 'vehicle_class', 'month', 'date_listed', 'bidding_no']
+    columns_to_drop = ['model_trim', 'accessories', 'model_make_id', 'vehicle_class', 'coe_month', 'date_listed', 'coe_bidding_no']
     data = data.drop(columns=columns_to_drop)
     return data
 
