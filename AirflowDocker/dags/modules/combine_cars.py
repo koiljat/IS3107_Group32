@@ -143,31 +143,21 @@ def append_final_table():
     temp_dataset_id = "temp"
     temp_table_id = "cars-temp"
 
-    # First, clear all existing data in the target table
-    delete_query = f"""
-    DELETE FROM `{project_id}.{target_dataset_id}.{target_table_id}` WHERE TRUE
+    # SQL to merge data from a temporary table into the final table based on specified conditions
+    merge_query = f"""
+    MERGE `{project_id}.{target_dataset_id}.{target_table_id}` final
+    USING `{project_id}.{temp_dataset_id}.{temp_table_id}` temp
+    ON final.`price` = temp.`price` AND final.`reg_date` = temp.`reg_date` AND final.`mileage` = temp.`mileage`
+    WHEN NOT MATCHED THEN
+    INSERT ROW
     """
 
-    # Then, insert all data from the temporary table into the final table
-    insert_query = f"""
-    INSERT INTO `{project_id}.{target_dataset_id}.{target_table_id}`
-    SELECT * FROM `{project_id}.{temp_dataset_id}.{temp_table_id}`
-    """
-
-    # Execute the delete query and wait for it to complete
+    # Execute the merge query and wait for it to complete
     try:
-        delete_job = client.query(delete_query)
-        delete_job.result()  # Waits for the delete to finish
-        print("All data deleted from the target table.")
+        merge_job = client.query(merge_query)
+        merge_job.result()  # Waits for the query to finish
+        print("Merge operation successful.")
     except Exception as e:
-        print(f"An error occurred during the delete operation: {e}")
-
-    # Execute the insert query and wait for it to complete
-    try:
-        insert_job = client.query(insert_query)
-        insert_job.result()  # Waits for the insert to finish
-        print("New data inserted into the target table.")
-    except Exception as e:
-        print(f"An error occurred during the insert operation: {e}")
+        print(f"An error occurred during the merge operation: {e}")
 
 "----------------------------------------- combine cars and load into BQ -------------------------------------------------------------------------"
