@@ -52,7 +52,7 @@ def transform_car_combined(sgcarmart_df, motorist_df):
     print(combined_df['date_listed'].head())
      # Apply the function to determine the correct month and bidding no based on 'datelisted'
     combined_df['coe_bidding_month'], combined_df['coe_bidding_no'] = zip(*combined_df['date_listed'].apply(check_date_position_and_bidding_no))
-    
+    combined_df['vehicle_class'] = np.where((combined_df["eng_cap"] <= 1600) & (combined_df['power'] <= 97), "Category A", "Category B")
     return combined_df
 
 '''
@@ -111,6 +111,7 @@ def load_temp_bq_table(df):
         bigquery.SchemaField("arf", "FLOAT"),
         bigquery.SchemaField("accessories", "STRING"),
         bigquery.SchemaField("date_listed", "STRING"),
+        bigquery.SchemaField("vehicle_class", "STRING"),
         bigquery.SchemaField("coe_bidding_month", "STRING"),
         bigquery.SchemaField("coe_bidding_no", "INTEGER"),
     ]
