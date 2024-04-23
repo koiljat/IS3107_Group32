@@ -223,19 +223,17 @@ def upload_to_BQ(dict):
         if values is not None:
             row.update(values)
             rows.append(row)
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(rows)        
+    df = df.drop(columns=['model_make_id', 'model_name', 'model_year'])
 
-    table_id = 'is3107-418903.api.api'
+    table_id = 'is3107-418903.car_info.car_info'
 
     job_config = bigquery.LoadJobConfig(
         schema=[
             bigquery.SchemaField("make", "STRING"),
             bigquery.SchemaField("model", "STRING"),
             bigquery.SchemaField("year", "INTEGER"),
-            bigquery.SchemaField("model_make_id", "STRING"),
-            bigquery.SchemaField("model_name", "STRING"),
             bigquery.SchemaField("model_trim", "STRING"),
-            bigquery.SchemaField("model_year", "INTEGER"),
             bigquery.SchemaField("model_body", "STRING"),
             bigquery.SchemaField("model_seats", "INTEGER"),
             bigquery.SchemaField("model_weight_kg", "FLOAT"),

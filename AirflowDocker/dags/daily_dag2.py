@@ -149,7 +149,7 @@ def webscraper_taskflow():
                 gcs_hook = GCSHook(gcp_conn_id='google_cloud_default')
             
                 bucket_name = 'is3107-datasets'
-                object_name = 'carAPI/api.json'
+                object_name = 'car_info/car_info.json'
                 data = {}
 
                 try:
@@ -174,7 +174,7 @@ def webscraper_taskflow():
             def save_api_json(dict):
                 gcs_hook = GCSHook(google_cloud_storage_conn_id='google_cloud_default')
                 bucket_name = 'is3107-datasets'
-                object_name = 'carAPI/api.json'
+                object_name = 'car_info/car_info.json'
                 json_data = json.dumps(dict)
                 gcs_hook.upload(bucket_name=bucket_name, object_name=object_name, data=json_data.encode(), mime_type='application/json')
                 
