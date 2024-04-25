@@ -36,7 +36,7 @@ def coe_retriever():
         return dataframe
     
     @task(task_id="transform_type")
-    def transform_type(dataframe):
+    def transform_coe(dataframe):
         dataframe["month"] = dataframe["month"].astype(str)
         dataframe["bidding_no"] = dataframe["bidding_no"].astype(int)
         dataframe["vehicle_class"] = dataframe["vehicle_class"].astype(str)
@@ -86,8 +86,7 @@ def coe_retriever():
             print(f"An error occurred while loading data to BigQuery: {e}")
     
     df = retrieve_coe()
-    save_coe_csv(df)
-    df2 = transform_type(df)
+    df2 = transform_coe(df)
     save_data_to_bq(df2)
 
 dag = coe_retriever()
