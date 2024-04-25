@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from airflow.utils.email import send_email
 from airflow.decorators import dag, task, task_group
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
 from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
@@ -12,12 +13,14 @@ from modules.api_operations import api_calling_logic_motorist, upload_to_BQ, api
 from modules.ml_pipeline import data_encoding, change_reg_date_to_years, drop_cols, drop_highly_correlated_cols, train_evaluate_RF
 import json
 
-
 default_args = {
     'owner': 'airflow',
     'start_date': datetime(2024, 1, 1),
-    'retries': 1,
-    
+    'retries': 3,  # Set retries to 3
+    'retry_delay': timedelta(minutes=5),  # Delay between retries
+    'email': ['koiljatchong@gmail.com', 'gemsonkokjunming@gmail.com', 'isabel.pan1231@gmail.com', 'tansirui2@gmail.com', 'pngwenlong@gmail.com'],
+    'email_on_failure': True,  # Send email on task failure
+    'email_on_retry': False,  # Optionally, set to True if you want emails on retry as well
 }
 
 @dag(dag_id='daily_dag2', default_args=default_args, schedule_interval='@daily', catchup=False)
