@@ -1,5 +1,4 @@
-# Project Title
-SGCarForecast: Predictive Pricing for Singaporean Vehicles 
+# SGCarForecast: Predictive Pricing for Singaporean Vehicles 
 
 ## Description
 
