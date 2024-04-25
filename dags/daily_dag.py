@@ -1,27 +1,29 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from airflow.utils.email import send_email
 from airflow.decorators import dag, task, task_group
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
 from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
 from modules.extract import get_links, get_details
 from modules.transform import transform
-from modules.sgcarmart import run_test_scraper, transform_sgcarmart_data
+from modules.sgcarmart import run_scraper, transform_sgcarmart_data
 from modules.combine_cars import append_final_table, transform_car_combined, load_temp_bq_table
-from modules.ml_pipeline import data_encoding, change_reg_date_to_years, drop_cols, drop_highly_correlated_cols, train_evaluate_RF
-from modules.api_operations import api_calling_logic_motorist, upload_to_BQ, api_calling_logic_sgcarmart
-
 from io import StringIO
 import pandas as pd
+from modules.api_operations import api_calling_logic_motorist, upload_to_BQ, api_calling_logic_sgcarmart
+from modules.ml_pipeline import data_encoding, change_reg_date_to_years, drop_cols, drop_highly_correlated_cols, train_evaluate_RF
 import json
-
 
 default_args = {
     'owner': 'airflow',
     'start_date': datetime(2024, 1, 1),
-    'retries': 1,
-    
+    'retries': 3,  # Set retries to 3
+    'retry_delay': timedelta(minutes=5),  # Delay between retries
+    'email': ['koiljatchong@gmail.com', 'gemsonkokjunming@gmail.com', 'isabel.pan1231@gmail.com', 'tansirui2@gmail.com', 'pngwenlong@gmail.com'],
+    'email_on_failure': True,  # Send email on task failure
+    'email_on_retry': False,  # Optionally, set to True if you want emails on retry as well
 }
 
-@dag(dag_id='daily_dag2', default_args=default_args, schedule_interval='@daily', catchup=False)
+@dag(dag_id='daily_dag', default_args=default_args, schedule_interval='@daily', catchup=False)
 def webscraper_taskflow():
 
     @task(task_id='start')
@@ -65,7 +67,7 @@ def webscraper_taskflow():
         def sgcarmart_group():
             @task(task_id='sgcarmart_fetch_data')
             def fetch_data(num_pages):
-                return run_test_scraper(num_pages)
+                return run_scraper()
 
             @task(task_id='sgcarmart_transform')
             def transform_data(df):
@@ -82,7 +84,7 @@ def webscraper_taskflow():
                 gcs_hook.upload(bucket_name=bucket_name, object_name=destination_blob_name, data=transformed_data.to_csv(index=False).encode())
                 return f"Data uploaded to GCS at {destination_blob_name}"
 
-            data = fetch_data(10)
+            data = fetch_data(183)
             transformed = transform_data(data)
             storage = dump_to_gcs(transformed)
             
@@ -198,16 +200,10 @@ def webscraper_taskflow():
     @task(task_id='end')
     def end():
         print(f"End task received")
-        
-    
-    @task_group(group_id='data_warehouse')
-    def BQ_transformation():
-        pass
 
-    @task_group(group_id='serving_layer')
+    @task(task_id='serving_layer')
     def train_model():
         import joblib
-
         
         hook = BigQueryHook(gcp_conn_id='google_cloud_default', use_legacy_sql=False)
         sql = """
@@ -237,8 +233,7 @@ def webscraper_taskflow():
 
         gcs_hook.upload(bucket_name=bucket_name, object_name=object_name_model_dataset, filename='dataset.csv')
 
-        return r2_RF
     
-    initiate_dag() >> web_scraping() >> api_and_merge_data() >> BQ_transformation() >> train_model() >> end()
+    initiate_dag() >> web_scraping() >> api_and_merge_data() >> train_model() >> end()
 
 dag = webscraper_taskflow()
