@@ -32,8 +32,8 @@ IS3107 Final Project
 
 ### machine_learning
 
-Contains jupyter notebook  `ml_pipeline` for traning the machine learning pipeline.
-Contains jupyter notebook `ml_prediction` for retrival of the trained model and cleaned dataset from GCS, and using Grid Search to tune the hyperparameters.
-Contains pickle file `modelRF.pkl`. This is the trained model fetched from GCS.
-Contains csv file `dataset.csv`. This is the cleaned dataset fetched from GCS.
+- Contains jupyter notebook  `ml_pipeline` for traning the machine learning pipeline.
+- Contains jupyter notebook `ml_prediction` for retrival of the trained model and cleaned dataset from GCS, and using Grid Search to tune the hyperparameters.
+- Contains pickle file `modelRF.pkl`. This is the trained model fetched from GCS.
+- Contains csv file `dataset.csv`. This is the cleaned dataset fetched from GCS.
 
